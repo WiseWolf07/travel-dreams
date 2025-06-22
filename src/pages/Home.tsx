@@ -17,6 +17,24 @@ export default function Home() {
     fetchDestinations()
   }, [])
 
+  useEffect(() => {
+    const channel = supabase
+        .channel("realtime:destinations")
+        .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "destinations" },
+        () => {
+            fetchDestinations()
+        }
+        )
+        .subscribe()
+
+    return () => {
+        supabase.removeChannel(channel)
+    }
+  }, [])
+
+
   const toggleVisited = async (id: number) => {
     const current = destinations.find((d) => d.id === id)
     if (!current) return
